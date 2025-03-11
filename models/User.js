@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     mobile:{type:String,required:true},
     userType:{type:String,enum:Object.values(UserType),required:true},
     profileImage:{type:String},
-    level:{type:Number, enum:Object.values(LevelType),required:true},
+    level:{type:Number, enum:Object.values(LevelType)},
     bio:{type:String},
     achievements:[{type:String}],
     medals:{type:String,enum:Object.values(MedalType)},
@@ -18,7 +18,9 @@ const userSchema = new mongoose.Schema({
     studentIds:{type:mongoose.Schema.Types.ObjectId,ref:'User'},
     points:{type:Number, default:0},
     createdAt:{type:Date, default:Date.now},
-    updateAt:{type:Date, default:Date.now}
+    updateAt:{type:Date, default:Date.now},
+    resetOTP: { type: String }, 
+    resetOTPExpiration: { type: Date },
 
 })
 

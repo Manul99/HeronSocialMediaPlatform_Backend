@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "heron-social-media-platform",
+  "private_key_id": "fd0db47f72ac6340787ac02424e8f61eeb825fe4",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCZlsA+ezRYo38o\nhYG0EsGvE51GNRKoMg6bPZOGwtHLmeD1T/PpPVgnOv30a4ivSvbZGJGjUCrURSO6\nkPfCLYBukDOz3kbhF9BtKtRADX287X0VHa7mSyYrumEQGN/6SYLzofkmYdKAK133\nutanyi/OJrlRt/r5CMB3srCxUcvT9DMGLzYOCNfHQbvTvktekRx1Og+YS75KSnKO\nEcNNVBWXOmFe9tj03eY/klLP+b7z9Fo7o22rms4aihvdzgzItChlM+DbHeGoFvYf\n6K8Y4EBVdLmyGkjmoXuCjZDb1XXUmpwxMJsYaRf8xKdAN/sXGZCGyHBQVrPCEJVx\nzFpFiqX3AgMBAAECggEAMGMdB9I66J4BxpthBIFQQb8VMnQv/4tdrKzWmIMyI0nE\nZKSevGGWLy3XqjRiqI8ee8DQyTnNdHify/w2AhfhuXN2xnkFrY6aHHp8yf02Gtpb\nKNbkLiuIyAf84lxj2+9i8SybWOtCrRx8izpyvAPn0bPDeKpUyDZopI1IO2UAqTJu\nGN/mw4CgB+5i8vl3LkF7zSmhbwsvZPJa1nBY1u4foylYjUoFjDIdOBxJwbJeFRsp\nsTY+v4v4hlfAJkFQ9GcZBWTwL83sfRgMeNaA1i8lwhY5K5hgICz/XaDkPffOFwYI\navJrGF9/SBk77jMFB/+z7LOAsw+9Pbx6CeKDEQs5SQKBgQDI95S7RXNbWyoPKyXk\ntZVjQxOtgr5ftOPzyLHfclHc6+hO8Ab8KbIBILZK1iAng3xxiJvgn7iUC5fbnosi\nVMukY0CkYkikX4arwYfubagFX7jxA+/PtsZaIe0ew8BKEOHYxqbcJCuc89LXYSZ+\ntFVjnsTJc26xDD5JqFPue29rQwKBgQDDpc7YOp/Ia6pt5BFTVWs9Bnzx4NMO6Bqn\nYUN7EanY7w5T904oeUsZDoYbw8oLzA5VuwcONVMExsTXETTEHm38CQScvX8mdPUZ\nUe4Ea5a16rYNbAxY97/bxlG9NVTDoNrBcerdrl1zAWZPyQ+WA5urTtuZMTz2zSjh\nXN/BCZKdPQKBgB+7V/Sp5qkKH/39JiKSuV/O+5BuEHk0KroXel55wotLhIbSR4gR\nXVXoQGBYpwMWM9QJafNxxMc7fWLkCbwF/5GZSl+qVSX/H1iHWls/XURb9Ou5X2hA\nx9j7emFdL0OCnuaHl1kzLN+/cA8p+9YNy13Ld+8HFvdFo6Alv/rr6o/ZAoGAAsX5\n7aS/GRc1nkMqX7UJRR8vbDpUo5R0tESzsS3p63JQEK6jw/0cLGnBSul2lr44wcxZ\n6ECnQZ0TszzCM7l+s6DpGNOy1re3tbksl5Fy3HdMR1ptvmEcrh/cjsMPxYolL7LO\nsn/DQVsWuTDPcL/yV/ZRNJW3GISF/NPVNCZPlr0CgYAy++UT950PV2k7tT/d2tfd\n+mx+hh5CVckqZH8GtCBpKbpoe4g57fcYsSzynjNBR1AfKWOqNOeyL+48hZy4s8y8\nkU3K1q0w/djIeVw1uJ9peupEpQhRwjfSfrzJMC/0f63eQL63kTCXPtFIetCXOMBA\nVvsIuMfiRrom+1lzt+IG1A==\n-----END PRIVATE KEY-----\n",
+  "client_email": "heronsocialmediaplatform@heron-social-media-platform.iam.gserviceaccount.com",
+  "client_id": "109490011582059529354",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/heronsocialmediaplatform%40heron-social-media-platform.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

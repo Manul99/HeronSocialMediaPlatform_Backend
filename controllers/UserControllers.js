@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const {Storage} = require('@google-cloud/storage');
 const { UserType, MedalType } = require('../enums/enumList');
 const path = require('path');
-const storage = new Storage({ keyFilename: path.join(__dirname, '../config/heron-social-media-platform-fd0db47f72ac.json') });
+const storage = new Storage({ keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS });
 
 const bucket = storage.bucket('heronsocialmediafileuploads');
 

@@ -18,6 +18,11 @@ const UserType = Object.freeze({
     SECONDARY: 2,
     ADVANCED: 1,
   });
+
+  const PostType = Object.freeze({
+    EDUCATIONAL: "Educational",
+    GENERAL: "General",
+  })
   
-  module.exports = { UserType, MedalType, LevelType };
+  module.exports = { UserType, MedalType, LevelType, PostType };
   

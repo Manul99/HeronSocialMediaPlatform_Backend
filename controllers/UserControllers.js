@@ -8,77 +8,69 @@ const { UserType, MedalType } = require('../enums/enumList');
 const path = require('path');
 const storage = new Storage({ keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS });
 
-const bucket = storage.bucket('heronsocialmediafileuploads');
+const bucket = storage.bucket('heronsocialmediaplatformfilesupload');
 
 const multer = require('multer');
 
 
 //User registration
 const register = asyncHandler(async (req, res) => {
+    try {
+        const { fullName, username, email, password, mobile, userType, level, bio, achievements, medals } = req.body;
 
-  
+        if (!fullName || !username || !email || !password || !mobile || !userType) {
+            return res.status(400).json({ message: "Please fill all required fields." });
+        }
 
-        try {
-            const { fullName, username, email, password, mobile, userType, level, bio, achievements, medals } = req.body;
+        const userExists = await User.findOne({ username });
+        if (userExists) {
+            return res.status(400).json({ message: "User already exists" });
+        }
 
-            if (!fullName || !username || !email || !password || !mobile || !userType) {
-                return res.status(400).json({ message: "Please fill all required fields." });
-            }
+        const hashPassword = await bcrypt.hash(password, 10);
+        let profileImageUrl = "";
 
-            const userExists = await User.findOne({ username });
-            if (userExists) {
-                return res.status(400).json({ message: "User already exists" });
-            }
-
-            const hashPassword = await bcrypt.hash(password, 10);
-            let profileImageUrl = "";
-
-            if (req.file) {
-                const file = bucket.file(`profileImages/${Date.now()}_${req.file.originalname}`);
-                const stream = file.createWriteStream({
-                    metadata: { contentType: req.file.mimetype },
-                 
-                });
-
-                stream.end(req.file.buffer);
-
-                await new Promise((resolve, reject) => {
-                    stream.on("finish", async  () => {
-                        const [url] = await file.getSignedUrl({
-                            action: "read",
-                            expires: '03-01-2026'
-                        })
-                        profileImageUrl = url;
-                        resolve();
-                    });
-                    stream.on("error", reject);
-                });
-            }
-
-            const user = new User({
-                fullName,
-                username,
-                email,
-                password: hashPassword,
-                mobile,
-                userType,
-                level,
-                profileImage: profileImageUrl,
-                bio,
-                achievements: achievements || [],
-                medals: medals,
-                points: 0,
+        if (req.file) {
+            const fileName = `profileImages/${Date.now()}_${req.file.originalname}`;
+            const file = bucket.file(fileName);
+            const stream = file.createWriteStream({
+                metadata: { contentType: req.file.mimetype },
             });
 
-            await user.save();
-            res.status(201).json({ message: "User registered successfully", user });
-        } catch (error) {
-            console.error("Error during registration", error);
-            res.status(500).json({ message: "Internal server error" });
-        }
-    
-});
+            stream.end(req.file.buffer);
 
+            await new Promise((resolve, reject) => {
+                stream.on("finish", async () => {
+                    // Generate the public URL using the file name
+                    profileImageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+                    resolve();
+                });
+                stream.on("error", reject);
+            });
+        }
+
+        const user = new User({
+            fullName,
+            username,
+            email,
+            password: hashPassword,
+            mobile,
+            userType,
+            level,
+            profileImage: profileImageUrl,
+            bio,
+            achievements: achievements || [],
+            medals: medals,
+            points: 0,
+        });
+
+        await user.save();
+        res.status(201).json({ message: "User registered successfully", user });
+    } catch (error) {
+        console.error("Error during registration", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 
 
 const login = asyncHandler(async (req, res) => {

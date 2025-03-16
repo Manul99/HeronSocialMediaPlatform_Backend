@@ -125,7 +125,7 @@ const getVlogs = asyncHandler(async(req,res) =>{
 // Get by ID
 const getVlogByID = asyncHandler(async(req,res) =>{
     try {
-        const vlogId = req.params.id;
+        const { vlogId } = req.params;
         const vlog = await Vlogs.findById(vlogId).populate("userId","username");
 
         if (!vlog) {

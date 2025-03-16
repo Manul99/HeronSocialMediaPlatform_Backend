@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { createVlogs, updateVlog, getVlogs, getVlogByID, deleteVlog } = require('../controllers/VlogControllers');
-
+const { createPosts, updatePost, getPosts, getPostById, deletePost } = require('../controllers/PostCollectionController');
 
 const storage = multer.diskStorage({
     destination:(req,file,cb) =>{
@@ -16,11 +15,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({storage:storage});
 
+router.post('/create',upload.array('media',5),createPosts);
+router.put('/update/:id',upload.array('media',5),updatePost);
+router.get('/getPost',getPosts);
+router.get('/getPosts/:id',getPostById);
+router.delete('/:id',deletePost);
 
-router.post('/', upload.array("media",5),createVlogs); // Allow up to only 5 files to be uploaded.
-router.put('/:vlogId',upload.array("media",5),updateVlog);
-router.get('/getVlogs',getVlogs);
-router.get('/getVlogs/:vlogId',getVlogByID);
-router.delete('/:vlogId',deleteVlog);
 
 module.exports = router;

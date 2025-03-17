@@ -74,6 +74,8 @@ const updateGamification = asyncHandler(async(userId) =>{
 
     gamification.points += 10;
     gamification.level = getMedallionLevel(gamification.points);
+
+    await gamification.save();
 })
 
 //Get Medal level

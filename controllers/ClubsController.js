@@ -85,7 +85,7 @@ const createClubs = asyncHandler(async (req, res) => {
 
 const updateClubs = asyncHandler(async (req, res) => {
     try {
-        const { clubName, description, createdBy, mentorId, members, isPublic, events } = req.body;
+        const { clubName, description, mentorId, members, isPublic, events } = req.body;
         const club = await Clubs.findById(req.params.id);
 
         if (!club) {
@@ -176,4 +176,33 @@ const getClubById = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = {createClubs,updateClubs,getClubs,getClubById};
+const deleteClubs = asyncHandler(async (req, res) => {
+    try {
+        const club = await Clubs.findById(req.params.id);
+
+        if(!club){
+            res.status(404);
+            throw new Error('Club not found');
+        }
+
+        // Delete media files from Google Cloud Storage 
+        if (vlog.media && vlog.media.length > 0) {
+            for (const fileUrl of vlog.media) {
+                const fileName = fileUrl.split("/").pop(); // Extract file name from URL
+                const fileRef = bucket.file(`vlogMedia/${fileName}`);
+                await fileRef.delete();
+            }
+        }
+
+      
+                await Vlogs.deleteOne({ _id: club });
+        
+                res.status(200).json({ message: "Club deleted successfully" });
+
+    } catch (error) {
+        console.error("Failed to delete club",error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+})
+
+module.exports = {createClubs,updateClubs,getClubs,getClubById,deleteClubs};

@@ -8,6 +8,7 @@ const vlogRoutes = require('./routes/vlogRoutes')
 const postCollectionsRoutes = require('./routes/postCollectionRoutes')
 const gamificationRoutes = require('./routes/gamificationRoutes')
 const clubsRoutes = require('./routes/clubsRoutes')
+const eventsRoutes = require('./routes/eventRoutes')
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/vlogs',cors(),vlogRoutes);
 app.use('/api/postCollections',cors(),postCollectionsRoutes);
 app.use('/api/gamification',cors(),gamificationRoutes);
 app.use('/api/clubs',cors(),clubsRoutes);
+app.use('/api/events',cors(),eventsRoutes);
 
 const PORT = 3001;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}...`));

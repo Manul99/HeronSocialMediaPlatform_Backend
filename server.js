@@ -16,6 +16,8 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
+
 
 app.use('/api/users',cors(),userRoutes);
 app.use('/api/auth',cors(),authRoutes);

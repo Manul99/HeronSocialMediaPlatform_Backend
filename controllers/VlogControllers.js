@@ -2,10 +2,21 @@ const asyncHandler = require('express-async-handler');
 const {Storage} = require('@google-cloud/storage');
 const Vlogs = require('../models/Vlog');
 const storage = new Storage({keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS })
-
+const path = require('path');
+const fs = require('fs');
 const bucket = storage.bucket('heronsocialmediaplatformfilesupload')
 
-//Create Vlogs
+const uploadDir = path.join(__dirname, '../uploads');
+
+// Ensure the upload directory exists
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+
+const serverBaseUrl = 'http://localhost:3001';
+
+// Create Vlogs
 const createVlogs = asyncHandler(async (req, res) => {
     try {
         const { userId, title, description } = req.body;
@@ -19,26 +30,14 @@ const createVlogs = asyncHandler(async (req, res) => {
 
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
-                const fileName = `vlogMedia/${Date.now()}_${file.originalname}`;
-                const fileRef = bucket.file(fileName);
-                const stream = fileRef.createWriteStream({
-                    metadata: {
-                        contentType: file.mimetype
-                    }
-                });
+                const fileName = `vlogMedia_${Date.now()}_${file.originalname}`;
+                const filePath = path.join(uploadDir, fileName);
 
-                stream.end(file.buffer);
+                // Write file to local storage
+                fs.writeFileSync(filePath, file.buffer);
 
-                const fileUrl = await new Promise((resolve, reject) => {
-                    stream.on("finish", async () => {
-                        // Generate the public URL
-                        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-                        resolve(publicUrl);
-                    });
-                    stream.on("error", reject);
-                });
-
-                mediaFilesUrl.push(fileUrl);
+                // Save full URL path
+                mediaFilesUrl.push(`${serverBaseUrl}/uploads/${fileName}`);
             }
         }
 
@@ -56,58 +55,99 @@ const createVlogs = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-
 // Update Vlog
 const updateVlog = asyncHandler(async (req, res) => {
     try {
-        const { vlogId } = req.params;
         const { title, description } = req.body;
+        const { vlogId } = req.params;
 
+        // Find existing vlog
         const vlog = await Vlogs.findById(vlogId);
-
         if (!vlog) {
-            res.status(404);
-            throw new Error('Vlog not found');
+            return res.status(404).json({ message: "Vlog not found" });
         }
 
-        vlog.title = title || vlog.title;
-        vlog.description = description || vlog.description;
+        // Update fields if provided
+        if (title) vlog.title = title;
+        if (description) vlog.description = description;
+
+        // Handle media file updates
+        let mediaFilesUrl = vlog.media; // Keep existing media if no new files are uploaded
 
         if (req.files && req.files.length > 0) {
-            let mediaFilesUrl = [];
             for (const file of req.files) {
-                const fileName = `vlogMedia/${Date.now()}_${file.originalname}`;
-                const fileRef = bucket.file(fileName);
-                const stream = fileRef.createWriteStream({
-                    metadata: {
-                        contentType: file.mimetype
-                    }
-                });
+                const fileName = `vlogMedia_${Date.now()}_${file.originalname}`;
+                const filePath = path.join(uploadDir, fileName);
 
-                stream.end(file.buffer);
+                // Write file to local storage
+                fs.writeFileSync(filePath, file.buffer);
 
-                const fileUrl = await new Promise((resolve, reject) => {
-                    stream.on("finish", async () => {
-                        // Generate the public URL
-                        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-                        resolve(publicUrl);
-                    });
-                    stream.on("error", reject);
-                });
-
-                mediaFilesUrl.push(fileUrl);
+                // Save full URL path
+                mediaFilesUrl.push(`${serverBaseUrl}/uploads/${fileName}`);
             }
-
-            vlog.media = mediaFilesUrl;
         }
+
+        vlog.media = mediaFilesUrl; // Assign updated media list
 
         await vlog.save();
         res.status(200).json({ message: "Vlog updated successfully", vlog });
+
     } catch (error) {
-        console.error("Error updating vlog", error);
+        console.error("Error during updating vlog", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
+// const updateVlog = asyncHandler(async (req, res) => {
+//     try {
+//         const { vlogId } = req.params;
+//         const { title, description } = req.body;
+
+//         const vlog = await Vlogs.findById(vlogId);
+
+//         if (!vlog) {
+//             res.status(404);
+//             throw new Error('Vlog not found');
+//         }
+
+//         vlog.title = title || vlog.title;
+//         vlog.description = description || vlog.description;
+
+//         if (req.files && req.files.length > 0) {
+//             let mediaFilesUrl = [];
+//             for (const file of req.files) {
+//                 const fileName = `vlogMedia/${Date.now()}_${file.originalname}`;
+//                 const fileRef = bucket.file(fileName);
+//                 const stream = fileRef.createWriteStream({
+//                     metadata: {
+//                         contentType: file.mimetype
+//                     }
+//                 });
+
+//                 stream.end(file.buffer);
+
+//                 const fileUrl = await new Promise((resolve, reject) => {
+//                     stream.on("finish", async () => {
+//                         // Generate the public URL
+//                         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+//                         resolve(publicUrl);
+//                     });
+//                     stream.on("error", reject);
+//                 });
+
+//                 mediaFilesUrl.push(fileUrl);
+//             }
+
+//             vlog.media = mediaFilesUrl;
+//         }
+
+//         await vlog.save();
+//         res.status(200).json({ message: "Vlog updated successfully", vlog });
+//     } catch (error) {
+//         console.error("Error updating vlog", error);
+//         res.status(500).json({ message: "Internal server error" });
+//     }
+// });
 
 
 //Get all vlogs

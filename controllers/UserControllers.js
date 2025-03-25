@@ -6,11 +6,17 @@ const nodemailer = require('nodemailer');
 const {Storage} = require('@google-cloud/storage');
 const { UserType, MedalType } = require('../enums/enumList');
 const path = require('path');
-const storage = new Storage({ keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS });
+const fs = require('fs');
 
-const bucket = storage.bucket('heronsocialmediaplatformfilesupload');
+const uploadDir = path.join(__dirname, '../uploads');
 
-const multer = require('multer');
+// Ensure the upload directory exists
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+
+const serverBaseUrl = 'http://localhost:3001';
 
 
 //User registration
@@ -28,27 +34,19 @@ const register = asyncHandler(async (req, res) => {
         }
 
         const hashPassword = await bcrypt.hash(password, 10);
-        let profileImageUrl = "";
+  
+         let profileImageUrl = [];
+        
+         if (req.file) {
+            const fileName = `profile_${Date.now()}_${req.file.originalname}`;
+            const filePath = path.join(uploadDir, fileName);
 
-        if (req.file) {
-            const fileName = `profileImages/${Date.now()}_${req.file.originalname}`;
-            const file = bucket.file(fileName);
-            const stream = file.createWriteStream({
-                metadata: { contentType: req.file.mimetype },
-            });
+            // Save file to local storage
+            fs.writeFileSync(filePath, req.file.buffer);
 
-            stream.end(req.file.buffer);
-
-            await new Promise((resolve, reject) => {
-                stream.on("finish", async () => {
-                    // Generate the public URL using the file name
-                    profileImageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-                    resolve();
-                });
-                stream.on("error", reject);
-            });
+            // Set profile image URL for retrieval
+            profileImageUrl = `${serverBaseUrl}/uploads/${fileName}`;
         }
-
         const user = new User({
             fullName,
             username,
@@ -88,7 +86,7 @@ const login = asyncHandler(async (req, res) => {
             return res.status(401).json({message:'Invalid Password'});
         }
 
-        const token = jwt.sign({id:user.userID},JWT_SECRECT,{expiresIn:'1h'});
+        const token = jwt.sign({ id: user._id.toString() }, JWT_SECRECT, { expiresIn: '1h' });
         res.status(200).json({token,user});
     } catch (error) {
         console.log('Error during login', error);
@@ -97,33 +95,50 @@ const login = asyncHandler(async (req, res) => {
 })
 
 //Update user details
-const updateUser = asyncHandler(async(req,res) =>{
-    const{userId} = req.params;
+const updateUser = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
     const updateFields = req.body;
 
     try {
         const user = await User.findById(userId);
-        if(!user){
-            return res.status(404).json({message:'User not found'});
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
 
-        for(const field in updateFields){
-            if(['fullName','username','email','password','mobile','userType','level','profileImage','bio','achievements','medals'].includes(field)){
-                if(field === 'password'){
+        
+        let profileImageUrl = user.profileImage; 
+
+        if (req.file) {
+            const fileName = `profile_${Date.now()}_${req.file.originalname}`;
+            const filePath = path.join(uploadDir, fileName);
+
+            // Save new file to local storage
+            fs.writeFileSync(filePath, req.file.buffer);
+
+            // Update profile image URL
+            profileImageUrl = `${serverBaseUrl}/uploads/${fileName}`;
+        }
+
+        // Update fields dynamically
+        for (const field in updateFields) {
+            if (['fullName', 'username', 'email', 'password', 'mobile', 'userType', 'level', 'bio', 'achievements', 'medals'].includes(field)) {
+                if (field === 'password') {
                     updateFields[field] = await bcrypt.hash(updateFields[field], 10);
                 }
-
                 user[field] = updateFields[field];
             }
         }
 
+        // Update profile image if changed
+        user.profileImage = profileImageUrl;
+
         await user.save();
-        res.status(200).json({message:'User updated successfully'});
+        res.status(200).json({ message: 'User updated successfully', user });
     } catch (error) {
-        console.log('Error during update', error);
+        console.error('Error during update', error);
         res.status(500).json({ message: 'Internal server error' });
     }
-})
+});
 
 // Request Password Reset
 const requestPasswordResetWithOTP = asyncHandler(async(req,res) =>{

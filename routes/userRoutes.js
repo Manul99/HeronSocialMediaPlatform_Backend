@@ -4,19 +4,13 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 
- const storage = multer.diskStorage({
-    destination:(req,file,cb) =>{
-        cb(null,'./uploads');
-    },
-    filename:(req,file,cb) =>{
-        cb(null,Date.now()+ path.extname(file.originalname));
-    }
-})
 
-const upload = multer({storage:storage});
+const storage1 = multer.memoryStorage();
+const upload1 = multer({storage:storage1});
 
 
-router.post('/', upload.single("profileImage"), register);
+
+router.post('/', upload1.single("profileImage"), register);
 router.post('/login',login);
 router.put('/:userId',updateUser);
 router.post('/delete-account',deleteAccount);

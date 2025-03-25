@@ -1,9 +1,18 @@
 const asyncHandler = require('express-async-handler');
-const {Storage} = require('@google-cloud/storage');
 const PostCollections = require('../models/PostCollections');
 const Gamification = require('../models/Gamification');
-const storage = new Storage({keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS })
-const bucket = storage.bucket('heronsocialmediaplatformfilesupload')
+const path = require('path');
+const fs = require('fs');
+
+const uploadDir = path.join(__dirname, '../uploads');
+
+// Ensure the upload directory exists
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+
+const serverBaseUrl = 'http://localhost:3001';
 
 //Create a new post
 const createPosts = asyncHandler(async(req, res) =>{
@@ -16,31 +25,19 @@ const createPosts = asyncHandler(async(req, res) =>{
         }
 
         let postMediaFilesUrl = [];
-
-        if (req.files && req.files.length > 0) {
-            for (const file of req.files) {
-                const fileName = `postCollectionMedia/${Date.now()}_${file.originalname}`;
-                const fileRef = bucket.file(fileName);
-                const stream = fileRef.createWriteStream({
-                    metadata: {
-                        contentType: file.mimetype
-                    }
-                });
-
-                stream.end(file.buffer);
-
-                const fileUrl = await new Promise((resolve, reject) => {
-                    stream.on("finish", async () => {
-                        // Generate the public URL
-                        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-                        resolve(publicUrl);
-                    });
-                    stream.on("error", reject);
-                });
-
-                postMediaFilesUrl.push(fileUrl);
-            }
-        }
+  
+          if (req.files && req.files.length > 0) {
+              for (const file of req.files) {
+                  const fileName = `postCollectionMedia_${Date.now()}_${file.originalname}`;
+                  const filePath = path.join(uploadDir, fileName);
+  
+                  // Write file to local storage
+                  fs.writeFileSync(filePath, file.buffer);
+  
+                  // Save full URL path
+                  postMediaFilesUrl.push(`${serverBaseUrl}/uploads/${fileName}`);
+              }
+          }
 
         const posts = new PostCollections({
             userId,

@@ -1,37 +1,54 @@
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-const verifyToken = async (req,res) =>{
-    const JWT_SECRECT = 'manuss' || 'default_secrect';
+const JWT_SECRET = 'manuss'; // Define secret once
 
+const verifyToken = async (req, res, next) => {
     try {
         const token = req.header('Authorization')?.replace('Bearer ', '');
         if (!token) {
             return res.status(401).json({ message: 'Access denied. Token not provided' });
         }
 
-        const decoded = jwt.decode(token);
-        if (decoded && decoded.exp && decoded.exp < Date.now() / 1000) {
-            return res.status(401).json({ message: 'Token expired' });
-        }
+        // Verify and decode token
+        const verifiedToken = jwt.verify(token, JWT_SECRET);
+        console.log('Decoded Token:', verifiedToken); // Debugging
 
-
-        const verifiedToken = jwt.verify(token, JWT_SECRECT);
-        const user = await Users.findById(verifiedToken.id);
-        if (!user) {
+        if (!verifiedToken.id) {
             return res.status(401).json({ message: 'Invalid token' });
         }
 
-        req.user = user;
+        const user = await User.findById(verifiedToken.id);
+        if (!user) {
+            return res.status(401).json({ message: 'User not found' });
+        }
+
+        req.user = { id: user._id.toString() }; // Ensure ID is a string
+        console.log('User attached to request:', req.user);
+
         next();
     } catch (error) {
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({ message: 'Token expired' });
-        }
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ message: 'Invalid token' });
-        }
-        res.status(401).json({ message: 'Authentication failed' });
+        console.error('Token verification error:', error);
+        return res.status(401).json({ message: 'Authentication failed' });
     }
-}
+};
 
-module.exports = verifyToken;
+const authMiddleware = (req, res, next) => {
+    const token = req.header('Authorization')?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized, no token provided' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        console.log('Decoded Token:', decoded);
+        req.user = { id: decoded.id }; // Store user ID
+        next();
+    } catch (error) {
+        console.error('Token error:', error);
+        res.status(401).json({ message: 'Unauthorized, invalid token' });
+    }
+};
+
+module.exports = { verifyToken, authMiddleware };

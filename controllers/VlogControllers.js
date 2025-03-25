@@ -1,10 +1,8 @@
 const asyncHandler = require('express-async-handler');
 const {Storage} = require('@google-cloud/storage');
 const Vlogs = require('../models/Vlog');
-const storage = new Storage({keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS })
 const path = require('path');
 const fs = require('fs');
-const bucket = storage.bucket('heronsocialmediaplatformfilesupload')
 
 const uploadDir = path.join(__dirname, '../uploads');
 
@@ -61,18 +59,18 @@ const updateVlog = asyncHandler(async (req, res) => {
         const { title, description } = req.body;
         const { vlogId } = req.params;
 
-        // Find existing vlog
+  
         const vlog = await Vlogs.findById(vlogId);
         if (!vlog) {
             return res.status(404).json({ message: "Vlog not found" });
         }
 
-        // Update fields if provided
+     
         if (title) vlog.title = title;
         if (description) vlog.description = description;
 
         // Handle media file updates
-        let mediaFilesUrl = vlog.media; // Keep existing media if no new files are uploaded
+        let mediaFilesUrl = vlog.media;
 
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {

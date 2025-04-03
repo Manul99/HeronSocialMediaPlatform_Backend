@@ -1,5 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Messages = require('../models/Messageing');
+const path = require('path');
+const fs = require('fs');
 
 //Send a direct or group message
 const sendMessage = asyncHandler(async (req, res) => {
@@ -11,13 +13,28 @@ const sendMessage = asyncHandler(async (req, res) => {
         if(!message){
             return res.status(400).json({ message: "Message cannot be empty" });
         }
+
+        let mediaFilesUrl = [];
+        
+                if (req.files && req.files.length > 0) {
+                    for (const file of req.files) {
+                        const fileName = `msgMedia_${Date.now()}_${file.originalname}`;
+                        const filePath = path.join(uploadDir, fileName);
+        
+                        // Write file to local storage
+                        fs.writeFileSync(filePath, file.buffer);
+        
+                        // Save full URL path
+                        mediaFilesUrl.push(`${serverBaseUrl}/uploads/${fileName}`);
+                    }
+                }
     
         const newMessage = await Messages({
             senderId,
             receiverId,
             clubId,
             message,
-            media,
+            media:mediaFilesUrl,
             createdAt: new Date()
         });
     
@@ -34,7 +51,8 @@ const sendMessage = asyncHandler(async (req, res) => {
 
 //Get all messages
 const getMessages = asyncHandler(async (req, res) => {
-    const { userId, chatType, chatId } = req.params;
+    const userId = req.user.id;
+    const { chatType, chatId } = req.params;
 
     let messages;
 

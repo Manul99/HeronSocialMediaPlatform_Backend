@@ -11,6 +11,7 @@ const clubsRoutes = require('./routes/clubsRoutes')
 const eventsRoutes = require('./routes/eventRoutes')
 const blogsRoutes = require('./routes/blogRoutes');
 const messageRoutes = require('./routes/messageRoutes')
+const parentRoutes = require('./routes/parentRoutes')
 const { initializeSocket } = require('./middleware/webSocketMiddleware');
 const app = express();
 const http = require("http");
@@ -33,6 +34,7 @@ app.use('/api/clubs',cors(),clubsRoutes);
 app.use('/api/events',cors(),eventsRoutes);
 app.use('/api/blogs',cors(),blogsRoutes);
 app.use('/api/messages',cors(),messageRoutes);
+app.use('/api/parent',cors(),parentRoutes);
 
 const PORT = 3001;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}...`));

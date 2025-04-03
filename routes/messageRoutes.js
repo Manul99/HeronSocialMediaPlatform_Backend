@@ -2,10 +2,17 @@ const express = require("express");
 const { attachSocket } = require("../middleware/webSocketMiddleware");
 const { sendMessage, getMessages } = require("../controllers/MessageController");
 const { authMiddleware } = require("../middleware/auth");
+const multer = require('multer');
+const path = require('path');
 
 const router = express.Router();
 
-router.post("/send",attachSocket,authMiddleware,sendMessage);
-router.get("/:userId/:chatType/:chatId",getMessages);
+const storage = multer.memoryStorage();
+
+
+const upload = multer({storage:storage});
+
+router.post("/send",upload.array("media",5),attachSocket,authMiddleware,sendMessage);
+router.get("/:chatType/:chatId",authMiddleware,getMessages);
 
 module.exports = router;

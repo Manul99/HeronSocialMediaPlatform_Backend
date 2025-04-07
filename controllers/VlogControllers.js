@@ -17,7 +17,9 @@ const serverBaseUrl = 'http://localhost:3001';
 // Create Vlogs
 const createVlogs = asyncHandler(async (req, res) => {
     try {
-        const { userId, title, description } = req.body;
+
+        const userId = req.user.id;
+        const { title, description } = req.body;
 
         if (!userId || !title || !description) {
             res.status(400);

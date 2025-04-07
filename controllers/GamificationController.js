@@ -4,7 +4,7 @@ const Gamification = require('../models/Gamification');
 
 const getGamification = asyncHandler(async (req, res) => {
     try {
-        const {userId} = req.params;
+        const userId = req.user.id;
 
         const gamification = await Gamification.findOne({userId});
 

@@ -17,7 +17,8 @@ const serverBaseUrl = 'http://localhost:3001';
 //Create a new post
 const createPosts = asyncHandler(async(req, res) =>{
     try {
-        const { userId, content, media, category } = req.body;
+        const userId = req.user.id;
+        const { content, media, category } = req.body;
 
         if(!userId || !content || !category){
             res.status(400);

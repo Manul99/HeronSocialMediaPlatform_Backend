@@ -22,7 +22,7 @@ const serverBaseUrl = 'http://localhost:3001';
 //User registration
 const register = asyncHandler(async (req, res) => {
     try {
-        const { fullName, username, email, password, mobile, userType, level, bio, achievements, medals } = req.body;
+        const { fullName, username, email, password, mobile, userType, level, bio, achievements, medals,academicProgress } = req.body;
 
         if (!fullName || !username || !email || !password || !mobile || !userType) {
             return res.status(400).json({ message: "Please fill all required fields." });
@@ -60,6 +60,7 @@ const register = asyncHandler(async (req, res) => {
             achievements: achievements || [],
             medals: medals,
             points: 0,
+            academicProgress:academicProgress || []
         });
 
         await user.save();
@@ -96,7 +97,8 @@ const login = asyncHandler(async (req, res) => {
 
 //Update user details
 const updateUser = asyncHandler(async (req, res) => {
-    const { userId } = req.params;
+    // Get userId from the token (stored in req.user.id by your authMiddleware)
+    const userId = req.user.id;
     const updateFields = req.body;
 
     try {
@@ -105,7 +107,6 @@ const updateUser = asyncHandler(async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        
         let profileImageUrl = user.profileImage; 
 
         if (req.file) {
@@ -121,7 +122,7 @@ const updateUser = asyncHandler(async (req, res) => {
 
         // Update fields dynamically
         for (const field in updateFields) {
-            if (['fullName', 'username', 'email', 'password', 'mobile', 'userType', 'level', 'bio', 'achievements', 'medals'].includes(field)) {
+            if (['fullName', 'username', 'email', 'password', 'mobile', 'userType', 'level', 'bio', 'achievements', 'medals', 'academicProgress'].includes(field)) {
                 if (field === 'password') {
                     updateFields[field] = await bcrypt.hash(updateFields[field], 10);
                 }
@@ -298,4 +299,44 @@ const deleteAccount = asyncHandler(async(req,res) =>{
     }
 });
 
-module.exports = {register,login,updateUser,requestPasswordResetWithOTP,verifyOTPAndPassword,updatePassword,deleteAccount};
+//Students approves assigned teacher
+const approveTeacher = asyncHandler(async (req, res) => {
+    try {
+        const studentId = req.user.id;
+
+    const student = await User.findById(studentId);
+    
+    if(!student || student.userType !== 'student') {
+        return res.status(404).json({message:'Student not found'});
+    }
+
+    if (!student.assignedTeacher || !student.assignedTeacher.teacherId) {
+        return res.status(400).json({ message: 'No teacher assigned' });
+      }
+  
+      if (student.assignedTeacher.isApproved) {
+        return res.status(400).json({ message: 'Teacher already approved' });
+      }
+
+    student.assignedTeacher.isApproved = true;
+    await student.save();
+    res.status(200).json({message:'Teacher approved successfully'});
+
+    } catch (error) {
+        console.error('Failed to approve teacher',error);
+        res.status(500).json({message:'Internal server error'});
+    }
+});
+
+const getClassOverview = asyncHandler(async (req, res) => {
+    const teacherId = req.user.id;
+    const students = await User.find({
+        userType:'student',
+        'assignedTeacher.teacherId': teacherId,
+        'assignedTeacher.isApproved': true
+    }).select('fullName email level points academicProgress');
+
+    res.status(200).json(students);
+})
+
+module.exports = {register,login,updateUser,requestPasswordResetWithOTP,verifyOTPAndPassword,updatePassword,deleteAccount,approveTeacher,getClassOverview};

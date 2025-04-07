@@ -6,7 +6,7 @@ const fs = require('fs');
 //Send a direct or group message
 const sendMessage = asyncHandler(async (req, res) => {
     try {
-        const senderId = req.user.id; // Get senderId from token
+        const senderId = req.user.id; 
         const { receiverId, message, clubId, media } = req.body;
        
 

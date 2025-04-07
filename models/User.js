@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema({
     updateAt:{type:Date, default:Date.now},
     resetOTP: { type: String }, 
     resetOTPExpiration: { type: Date },
+    assignedTeacher: {
+        teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        isApproved: { type: Boolean, default: false }
+      },
+    academicProgress:[{
+        grades:[{subject: String, score:Number}],
+        attendance:Number
+    }],
 
 })
 

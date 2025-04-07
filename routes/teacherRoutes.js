@@ -1,8 +1,8 @@
 const express = require('express');
-const { getGamification } = require('../controllers/GamificationController');
 const { authMiddleware } = require('../middleware/auth');
+const { assignStudent } = require('../controllers/TeacherControllers');
 const router = express.Router();
 
-router.get('/',authMiddleware,getGamification);
+router.post('/assignStudent',authMiddleware, assignStudent);
 
 module.exports = router;

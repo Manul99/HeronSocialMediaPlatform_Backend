@@ -13,7 +13,7 @@ const createEvents = asyncHandler(async (req, res) => {
             throw new Error("Please fill all the fields");
         };
 
-        // ✅ Check if club exists
+        //Check if club exists
     const clubExists = await Clubs.findById(clubId);
     if (!clubExists) {
       return res.status(404).json({ message: "Club not found" });
@@ -101,13 +101,13 @@ const getEventsById = asyncHandler(async (req, res) => {
 // This  returns all events, possibly for a specific club
 const getAllEvents = asyncHandler(async (req, res) => {
     try {
-        const { clubId } = req.query;  // Corrected this line
+        const { clubId } = req.query;  
 
         let events;
         if (clubId) {
-            events = await Events.find({ clubId });  // Find events by clubId
+            events = await Events.find({ clubId });  
         } else {
-            events = await Events.find();  // Get all events
+            events = await Events.find();  
         }
 
         res.status(200).json(events);

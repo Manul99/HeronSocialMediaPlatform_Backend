@@ -14,7 +14,8 @@ const serverBaseUrl = 'http://localhost:3001';
 
 const createBlog = asyncHandler(async (req, res) => {
     try {
-        const {userId,title,content,image} = req.body;
+        const userId = req.user.id;
+        const {title,content,image} = req.body;
 
         if(!title || !content){
             res.status(400);

@@ -1,45 +1,53 @@
 const asyncHandler = require('express-async-handler');
 const Events = require('../models/Events');
 const Clubs = require('../models/Clubs');
+const path = require('path');
+const fs = require('fs');
 
+const uploadDir = path.join(__dirname, '../uploads');
+
+// Ensure the upload directory exists
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+
+const serverBaseUrl = 'http://localhost:3001';
 
 const createEvents = asyncHandler(async (req, res) => {
              
     try {
-        const{clubId,name,description,date,time,location,responsibleUserId,isPublic,eligibilityCriteria,participants,discussions,annoucements} =  req.body;
-
-        if(!clubId || !name || !description || !date || !time || !location || !responsibleUserId || !isPublic || !eligibilityCriteria){
+        const { name, description, eventType, rules, media } = req.body;
+        if(!name || !description || !eventType || !rules){
             res.status(400);
             throw new Error("Please fill all the fields");
         };
 
-        //Check if club exists
-    const clubExists = await Clubs.findById(clubId);
-    if (!clubExists) {
-      return res.status(404).json({ message: "Club not found" });
-    }
+ 
+
+     let eventImageUrl = [];
+            
+             if (req.file) {
+                const fileName = `event_${Date.now()}_${req.file.originalname}`;
+                const filePath = path.join(uploadDir, fileName);
+    
+                // Save file to local storage
+                fs.writeFileSync(filePath, req.file.buffer);
+    
+                // Set profile image URL for retrieval
+                eventImageUrl = `${serverBaseUrl}/uploads/${fileName}`;
+            }
 
 
         const newEvent = new Events({
-            clubId: clubId || null,
             name,
             description,
-            date,
-            time,
-            location,
-            participants: participants || [],
-            isPublic: isPublic ?? false,
-            responsibleUserId,
-            eligibilityCriteria,
-            discussions: discussions || [],  
-            annoucements: annoucements || [] 
+            eventType,
+            rules,
+            media:eventImageUrl,
         });
 
         await newEvent.save();
-
-        if(clubId){
-            await Clubs.findByIdAndUpdate(clubId, {$push: {events: newEvent._id}});
-        }
 
         res.status(201).json({ message: 'Events created successfully', newEvent });
     } catch (error) {
@@ -100,19 +108,11 @@ const getEventsById = asyncHandler(async (req, res) => {
 
 // This  returns all events, possibly for a specific club
 const getAllEvents = asyncHandler(async (req, res) => {
-    try {
-        const { clubId } = req.query;  
-
-        let events;
-        if (clubId) {
-            events = await Events.find({ clubId });  
-        } else {
-            events = await Events.find();  
-        }
-
+   try {
+        const events = await Event.find();
         res.status(200).json(events);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to fetch events', details: error.message });
     }
 });
 

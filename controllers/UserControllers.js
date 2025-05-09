@@ -24,7 +24,7 @@ const register = asyncHandler(async (req, res) => {
     try {
         const { fullName, username, email, password, mobile, userType, level, bio, achievements, medals,academicProgress } = req.body;
 
-        if (!fullName || !username || !email || !password || !mobile || !userType) {
+        if (!username || !email || !password || !userType) {
             return res.status(400).json({ message: "Please fill all required fields." });
         }
 

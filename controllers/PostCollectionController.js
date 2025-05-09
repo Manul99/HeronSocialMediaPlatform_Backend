@@ -20,7 +20,7 @@ const createPosts = asyncHandler(async(req, res) =>{
         const userId = req.user.id;
         const { content, media, category } = req.body;
 
-        if(!userId || !content || !category){
+        if(!content || !category){
             res.status(400);
             throw new Error("User ID, content, and category are required");
         }

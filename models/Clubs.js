@@ -2,15 +2,12 @@ const mongoose = require('mongoose');
 
 
 const ClubSchema = new mongoose.Schema({
-    clubName:{type:String,required:true,trim:true},
-    description:{type:String,required:true,trim:true},
-    clubLogo:{type:String},
-    coverImage:{type:String},
-    createdBy:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},
-    mentorId:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},
+    clubName: { type: String, required: true, trim: true },          // "Add Club Name"
+    description: { type: String, required: true, trim: true },       // "Add Club Details"
+    clubType: { type: String, trim: true },                          // "Add Club Type"                       // "Add Event Type"
+    clubRules: [{ type: String }],                                   // "Add Club Rules"
+    clubLogo: { type: String },            
     members:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
-    isPublic:{type:Boolean,default:true},
-    events:[{type:mongoose.Schema.Types.ObjectId,ref:'Events'}],
     createdAt:{type:Date, default:Date.now},
     updatedAt:{type:Date, default:Date.now},
 });

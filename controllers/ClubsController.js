@@ -1,77 +1,57 @@
 const asyncHandler = require('express-async-handler');
 const Clubs = require('../models/Clubs');
-const {Storage} = require('@google-cloud/storage');
-const storage = new Storage({keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS })
-const bucket = storage.bucket('heronsocialmediaplatformfilesupload')
+const path = require('path');
+const fs = require('fs');
+
+const uploadDir = path.join(__dirname, '../uploads');
+
+// Ensure the upload directory exists
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+
+const serverBaseUrl = 'http://localhost:3001';
 
 const createClubs = asyncHandler(async (req, res) => {
     try {
-        const { clubName, description, createdBy, mentorId, isPublic } = req.body;
+        const { clubName, description, clubType, clubRules, clubLogo } = req.body;
 
         // Validate required fields
-        if (!clubName || !createdBy || !mentorId) {
+        if (!clubName || !description || !clubType) {
             res.status(400);
             throw new Error("Club name, created by, and mentor ID are required");
         }
 
         // Get members and events from request body
         const members = Array.isArray(req.body.members) ? req.body.members : [];
-        const events = Array.isArray(req.body.events) ? req.body.events : [];
+       
 
         let clubLogoUrl = "";
-        let coverImageUrl = "";
+       
 
       // Handle clubLogo file upload
-      if (req.files && req.files.clubLogo) {
-        const clubLogoFile = req.files.clubLogo[0];
-        const fileName = `clubLogo/${Date.now()}_${clubLogoFile.originalname}`;
-        const file = bucket.file(fileName);
-        const stream = file.createWriteStream({
-            metadata: { contentType: clubLogoFile.mimetype },
-        });
+     if (req.file) {
+                   const fileName = `clubLogo_${Date.now()}_${req.file.originalname}`;
+                   const filePath = path.join(uploadDir, fileName);
+       
+                   // Save file to local storage
+                   fs.writeFileSync(filePath, req.file.buffer);
+       
+                   // Set profile image URL for retrieval
+                   clubLogoUrl = `${serverBaseUrl}/uploads/${fileName}`;
+               }
 
-        stream.end(clubLogoFile.buffer);
 
-        await new Promise((resolve, reject) => {
-            stream.on("finish", async () => {
-                clubLogoUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-                resolve();
-            });
-            stream.on("error", reject);
-        });
-    }
-
-    // Handle coverImage file upload
-    if (req.files && req.files.coverImage) {
-        const coverImageFile = req.files.coverImage[0];
-        const fileName = `clubCover/${Date.now()}_${coverImageFile.originalname}`;
-        const file = bucket.file(fileName);
-        const stream = file.createWriteStream({
-            metadata: { contentType: coverImageFile.mimetype },
-        });
-
-        stream.end(coverImageFile.buffer);
-
-        await new Promise((resolve, reject) => {
-            stream.on("finish", async () => {
-                coverImageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-                resolve();
-            });
-            stream.on("error", reject);
-        });
-    }
 
         // Create a new club document
         const club = new Clubs({
-            clubName,
-            description,
-            clubLogo: clubLogoUrl,
-            coverImage: coverImageUrl,
-            createdBy,
-            mentorId,
-            members,
-            isPublic,
-            events,
+           clubName,
+           description,
+           clubType,
+           clubRules,
+           clubLogo: clubLogoUrl,
+           members: [] 
         });
 
         // Save the club to the database

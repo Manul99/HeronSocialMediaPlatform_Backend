@@ -5,26 +5,26 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const {Storage} = require('@google-cloud/storage');
 const { UserType, MedalType } = require('../enums/enumList');
-const path = require('path');
-const fs = require('fs');
+// const path = require('path');
+// const fs = require('fs');
 
-const uploadDir = path.join(__dirname, '../uploads');
+// const uploadDir = path.join(__dirname, '../uploads');
 
-// Ensure the upload directory exists
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
+// // Ensure the upload directory exists
+// if (!fs.existsSync(uploadDir)) {
+//     fs.mkdirSync(uploadDir);
+// }
 
 
-const serverBaseUrl = 'http://localhost:3001';
+// const serverBaseUrl = 'http://localhost:3001';
 
 
 //User registration
 const register = asyncHandler(async (req, res) => {
     try {
-        const { fullName, username, email, password, mobile, userType, level, bio, achievements, medals,academicProgress } = req.body;
+        const { fullName, username, password, mobile, level,gender, subject } = req.body;
 
-        if (!username || !email || !password || !userType) {
+        if (!fullName|| !username || !password || !level, !gender, !subject) {
             return res.status(400).json({ message: "Please fill all required fields." });
         }
 
@@ -35,32 +35,15 @@ const register = asyncHandler(async (req, res) => {
 
         const hashPassword = await bcrypt.hash(password, 10);
   
-         let profileImageUrl = [];
-        
-         if (req.file) {
-            const fileName = `profile_${Date.now()}_${req.file.originalname}`;
-            const filePath = path.join(uploadDir, fileName);
-
-            // Save file to local storage
-            fs.writeFileSync(filePath, req.file.buffer);
-
-            // Set profile image URL for retrieval
-            profileImageUrl = `${serverBaseUrl}/uploads/${fileName}`;
-        }
+       
         const user = new User({
             fullName,
             username,
-            email,
             password: hashPassword,
             mobile,
-            userType,
             level,
-            profileImage: profileImageUrl,
-            bio,
-            achievements: achievements || [],
-            medals: medals,
-            points: 0,
-            academicProgress:academicProgress || []
+            gender,
+            subject
         });
 
         await user.save();
@@ -337,6 +320,21 @@ const getClassOverview = asyncHandler(async (req, res) => {
     }).select('fullName email level points academicProgress');
 
     res.status(200).json(students);
+});
+
+const getuserById = asyncHandler(async(req,res) =>{
+    try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if(!user){
+        return res.status(404).json({message:'User not found'});
+    }
+    res.status(200).json(user);
+    } catch (error) {
+        console.error('Failed to get user');
+        res.status(500).json({message:'Internal server error'});
+    }
 })
 
-module.exports = {register,login,updateUser,requestPasswordResetWithOTP,verifyOTPAndPassword,updatePassword,deleteAccount,approveTeacher,getClassOverview};
+module.exports = {register,login,updateUser,requestPasswordResetWithOTP,verifyOTPAndPassword,updatePassword,deleteAccount,approveTeacher,getClassOverview,getuserById};

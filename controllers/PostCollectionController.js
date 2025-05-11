@@ -135,14 +135,18 @@ const updatePost = asyncHandler(async (req, res) => {
 
 // Get all posts
 const getPosts = asyncHandler(async (req, res) => {
-    try {
-        const posts = await PostCollections.find();
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error("Error fetching posts:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+  try {
+    const posts = await PostCollections.find()
+      .populate("userId", "username") // 🔹 only populate the `username` field from the User model
+      .sort({ createdAt: -1 }); // optional: sort by newest posts first
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
+
 
 // Get a single post by ID
 const getPostById = asyncHandler(async (req, res) => {

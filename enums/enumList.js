@@ -23,7 +23,12 @@ const UserType = Object.freeze({
     Educational: 1,
     General:2
     
-  })
+  });
+
+    const genderList = Object.freeze({
+    Male:'Male',
+    Female:'Female'
+  });
   
-  module.exports = { UserType, MedalType, LevelType, PostType };
+  module.exports = { UserType, MedalType, LevelType, PostType, genderList };
   

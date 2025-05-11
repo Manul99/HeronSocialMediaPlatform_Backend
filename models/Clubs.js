@@ -7,7 +7,12 @@ const ClubSchema = new mongoose.Schema({
     clubType: { type: String, trim: true },                          // "Add Club Type"                       // "Add Event Type"
     clubRules: [{ type: String }],                                   // "Add Club Rules"
     clubLogo: [{ type: String }],            
-    members:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
+    members: [
+        {
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            isAccepted: { type: Boolean, default: false }
+        }
+    ],
     createdAt:{type:Date, default:Date.now},
     updatedAt:{type:Date, default:Date.now},
 });

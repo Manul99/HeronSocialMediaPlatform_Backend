@@ -109,7 +109,7 @@ const getEventsById = asyncHandler(async (req, res) => {
 // This  returns all events, possibly for a specific club
 const getAllEvents = asyncHandler(async (req, res) => {
    try {
-        const events = await Event.find();
+        const events = await Events.find();
         res.status(200).json(events);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch events', details: error.message });

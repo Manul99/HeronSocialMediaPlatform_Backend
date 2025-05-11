@@ -335,6 +335,16 @@ const getuserById = asyncHandler(async(req,res) =>{
         console.error('Failed to get user');
         res.status(500).json({message:'Internal server error'});
     }
-})
+});
 
-module.exports = {register,login,updateUser,requestPasswordResetWithOTP,verifyOTPAndPassword,updatePassword,deleteAccount,approveTeacher,getClassOverview,getuserById};
+const getAllUsers = asyncHandler(async (req, res) => {
+   try {
+        const users = await User.find();
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch events', details: error.message });
+    }
+});
+
+
+module.exports = {register,login,updateUser,requestPasswordResetWithOTP,verifyOTPAndPassword,updatePassword,getAllUsers,approveTeacher,getClassOverview,getuserById};

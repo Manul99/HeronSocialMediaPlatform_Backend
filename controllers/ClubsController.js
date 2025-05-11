@@ -15,7 +15,7 @@ const serverBaseUrl = 'http://localhost:3001';
 
 const createClubs = asyncHandler(async (req, res) => {
     try {
-        const { clubName, description, clubType, clubRules, clubLogo } = req.body;
+        const { clubName, description, clubType, clubRules, clubLogo,invitedMembers  } = req.body;
 
         // Validate required fields
         if (!clubName || !description || !clubType) {
@@ -42,6 +42,10 @@ const createClubs = asyncHandler(async (req, res) => {
                    clubLogoUrl = `${serverBaseUrl}/uploads/${fileName}`;
                }
 
+    
+         const invited = Array.isArray(invitedMembers)
+            ? invitedMembers.map(id => ({ userId: id, isAccepted: false }))
+            : [];
 
 
         // Create a new club document
@@ -51,7 +55,7 @@ const createClubs = asyncHandler(async (req, res) => {
            clubType,
            clubRules,
            clubLogo: clubLogoUrl,
-           members: [] 
+           members: invited  
         });
 
         // Save the club to the database
@@ -183,6 +187,42 @@ const deleteClubs = asyncHandler(async (req, res) => {
         console.error("Failed to delete club",error);
         res.status(500).json({ message: "Internal server error" });
     }
+});
+
+const getInvitedClubs = asyncHandler(async (req, res) => {
+    try {
+        const {userId} = req.params;
+        const invitedClubs = await Clubs.find({"members.userId": userId, "members.isAccepted": false});
+        res.status(200).json(invitedClubs);
+    } catch (error) {
+        console.error("Error fetching invited clubs:", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+const acceptClubInvitation = asyncHandler(async (req, res) => {
+    try {
+        const {clubId, userId} = req.params;
+        const club = await Clubs.findById(clubId);
+        if (!club) {
+            res.status(404);
+            throw new Error('Club not found');
+        }
+
+        const member = club.members.find(m => m.userId === userId);
+        if (!member) {
+            res.status(404);
+            throw new Error('Invitation not found');
+        }
+
+        member.isAccepted = true;
+        await club.save();
+        res.status(200).json({ message: 'Invitation accepted successfully' });
+    } catch (error) {
+        console.error("Error accepting club invitation:", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 })
 
-module.exports = {createClubs,updateClubs,getClubs,getClubById,deleteClubs};
+module.exports = {createClubs,updateClubs,getClubs,getClubById,deleteClubs,getInvitedClubs,acceptClubInvitation};

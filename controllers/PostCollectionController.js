@@ -181,4 +181,58 @@ const deletePost = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = {createPosts,updatePost,getPosts,getPostById,deletePost}
+const likeandUnlike = asyncHandler(async (req, res) => {
+    try {
+
+        const blog = await PostCollections.findById(req.params.id);
+        if (!blog) return res.status(400).json({ message: 'Blog not found' });
+
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        console.log('User ID:', userId);
+
+        if (blog.likes.includes(userId)) {
+            blog.likes = blog.likes.filter(id => id.toString() !== userId);
+        } else {
+            blog.likes.push(userId);
+        }
+
+        await blog.save();
+        res.status(200).json({ likes: blog.likes.length });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+const addComments = asyncHandler(async (req, res) => {
+    try {
+        const blog = await PostCollections.findById(req.params.id);
+        if (!blog) return res.status(400).json({ message: 'Blog not found' });
+
+        // Handle both string and object formats
+        let commentText;
+        if (typeof req.body === 'string') {
+            commentText = req.body;
+        } else if (typeof req.body === 'object' && req.body.comment) {
+            commentText = req.body.comment;
+        }
+
+        if (!commentText || typeof commentText !== 'string' || commentText.trim() === "") {
+            return res.status(400).json({ message: "Comment cannot be empty" });
+        }
+
+        blog.comments.push({ userId: req.user.id, comment: commentText });
+        await blog.save();
+
+        res.status(200).json({ message: 'Comment added successfully', blog });
+    } catch (error) {
+        console.error('Failed to add comment:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+module.exports = {createPosts,updatePost,getPosts,getPostById,deletePost,likeandUnlike,addComments}

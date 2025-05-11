@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { createPosts, updatePost, getPosts, getPostById, deletePost } = require('../controllers/PostCollectionController');
+const { createPosts, updatePost, getPosts, getPostById, deletePost, likeandUnlike, addComments } = require('../controllers/PostCollectionController');
 const { authMiddleware } = require('../middleware/auth');
 
 const storage = multer.diskStorage({
@@ -23,6 +23,8 @@ router.put('/update/:id',upload.array('media',5),updatePost);
 router.get('/getPost',getPosts);
 router.get('/getPosts/:id',getPostById);
 router.delete('/:id',deletePost);
+router.post('/:id/like',authMiddleware,likeandUnlike);
+router.post('/:id/comments',authMiddleware,addComments);
 
 
 module.exports = router;

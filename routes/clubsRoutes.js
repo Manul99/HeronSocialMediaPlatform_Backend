@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { createClubs, updateClubs, getClubs, getClubById, deleteClubs } = require('../controllers/ClubsController');
+const { createClubs, updateClubs, getClubs, getClubById, deleteClubs, getInvitedClubs, acceptClubInvitation } = require('../controllers/ClubsController');
 
 
 const storage1 = multer.memoryStorage();
@@ -13,4 +13,6 @@ router.put('/:id', upload.fields([{ name: "clubLogo", maxCount: 1 }, { name: "co
 router.get('/getClubs',getClubs);
 router.get('/:id',getClubById);
 router.get('/:id',deleteClubs);
+router.get('/invited/:userId',getInvitedClubs);
+router.post('/accept/:clubId/:userId', acceptClubInvitation);
 module.exports = router;

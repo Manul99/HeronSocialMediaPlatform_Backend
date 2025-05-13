@@ -2,6 +2,8 @@ const asyncHandler = require('express-async-handler');
 const Clubs = require('../models/Clubs');
 const path = require('path');
 const fs = require('fs');
+const User = require('../models/User');
+const mongoose = require('mongoose');
 
 const uploadDir = path.join(__dirname, '../uploads');
 
@@ -15,16 +17,35 @@ const serverBaseUrl = 'http://localhost:3001';
 
 const createClubs = asyncHandler(async (req, res) => {
     try {
-        const { clubName, description, clubType, clubRules, clubLogo,invitedMembers  } = req.body;
-
+        let { clubName, description, clubType } = req.body;
         // Validate required fields
         if (!clubName || !description || !clubType) {
             res.status(400);
             throw new Error("Club name, created by, and mentor ID are required");
         }
 
-        // Get members and events from request body
-        const members = Array.isArray(req.body.members) ? req.body.members : [];
+        // Parse invitedMembers if it's sent as a JSON string
+    let invitedMembers = [];
+    if (req.body.invitedMembers) {
+      try {
+        invitedMembers = JSON.parse(req.body.invitedMembers);
+        if (!Array.isArray(invitedMembers)) throw new Error();
+      } catch {
+        res.status(400);
+        throw new Error("Invalid invitedMembers format. Must be a JSON array.");
+      }
+    }
+
+    // Handle club rules (optional, might come as clubRules[] or a single string)
+    let clubRules = [];
+    if (req.body['clubRules[]']) {
+      // If multiple rules are sent
+      if (Array.isArray(req.body['clubRules[]'])) {
+        clubRules = req.body['clubRules[]'];
+      } else {
+        clubRules = [req.body['clubRules[]']];
+      }
+    }
        
 
         let clubLogoUrl = "";
@@ -43,9 +64,12 @@ const createClubs = asyncHandler(async (req, res) => {
                }
 
     
-         const invited = Array.isArray(invitedMembers)
-            ? invitedMembers.map(id => ({ userId: id, isAccepted: false }))
-            : [];
+        const invited = invitedMembers.map(id => {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new Error(`Invalid ObjectId: ${id}`);
+    }
+    return { userId: id, isAccepted: false };
+});
 
 
         // Create a new club document
@@ -60,6 +84,19 @@ const createClubs = asyncHandler(async (req, res) => {
 
         // Save the club to the database
         await club.save();
+        await Promise.all(invitedMembers.map(async (studentId) => {
+    await User.findByIdAndUpdate(studentId, {
+        $push: {
+            clubInvitations: {
+                clubId: club._id,
+                clubName: club.clubName,
+                invitedAt: new Date(),
+                isAccepted: false
+            }
+        }
+    });
+}));
+
         res.status(201).json({ message: 'Club created successfully', club });
     } catch (error) {
         console.error("Error during creating club", error);
@@ -145,84 +182,101 @@ const getClubs = asyncHandler(async (req, res) => {
     }
 });
 
-// Get club by ID
-const getClubById = asyncHandler(async (req, res) => {
-    try {
-        const club = await Clubs.findById(req.params.id).populate("createdBy",  "mentorId");
-        if (!club) {
-            res.status(404);
-            throw new Error('Club not found');
-        }
-        res.status(200).json(club);
+const getAllClubs = asyncHandler(async (req, res) => {
+   try {
+        const clubs = await Clubs.find();
+        res.status(200).json(clubs);
     } catch (error) {
-        console.error("Error fetching club:", error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ error: 'Failed to fetch events', details: error.message });
     }
 });
 
-const deleteClubs = asyncHandler(async (req, res) => {
-    try {
-        const club = await Clubs.findById(req.params.id);
+// // Get club by ID
+// const getClubById = asyncHandler(async (req, res) => {
+//     try {
+//         const club = await Clubs.findById(req.params.id).populate("createdBy",  "mentorId");
+//         if (!club) {
+//             res.status(404);
+//             throw new Error('Club not found');
+//         }
+//         res.status(200).json(club);
+//     } catch (error) {
+//         console.error("Error fetching club:", error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// });
 
-        if(!club){
-            res.status(404);
-            throw new Error('Club not found');
-        }
+// const deleteClubs = asyncHandler(async (req, res) => {
+//     try {
+//         const club = await Clubs.findById(req.params.id);
 
-        // Delete media files from Google Cloud Storage 
-        if (vlog.media && vlog.media.length > 0) {
-            for (const fileUrl of vlog.media) {
-                const fileName = fileUrl.split("/").pop(); // Extract file name from URL
-                const fileRef = bucket.file(`vlogMedia/${fileName}`);
-                await fileRef.delete();
-            }
-        }
+//         if(!club){
+//             res.status(404);
+//             throw new Error('Club not found');
+//         }
+
+//         // Delete media files from Google Cloud Storage 
+//         if (vlog.media && vlog.media.length > 0) {
+//             for (const fileUrl of vlog.media) {
+//                 const fileName = fileUrl.split("/").pop(); // Extract file name from URL
+//                 const fileRef = bucket.file(`vlogMedia/${fileName}`);
+//                 await fileRef.delete();
+//             }
+//         }
 
       
-                await Vlogs.deleteOne({ _id: club });
+//                 await Vlogs.deleteOne({ _id: club });
         
-                res.status(200).json({ message: "Club deleted successfully" });
+//                 res.status(200).json({ message: "Club deleted successfully" });
 
-    } catch (error) {
-        console.error("Failed to delete club",error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
+//     } catch (error) {
+//         console.error("Failed to delete club",error);
+//         res.status(500).json({ message: "Internal server error" });
+//     }
+// });
 
 const getInvitedClubs = asyncHandler(async (req, res) => {
-    try {
-        const {userId} = req.params;
-        const invitedClubs = await Clubs.find({"members.userId": userId, "members.isAccepted": false});
-        res.status(200).json(invitedClubs);
-    } catch (error) {
-        console.error("Error fetching invited clubs:", error);
-        res.status(500).json({ message: 'Internal server error' });
+    const userId = req.user.id; // fixed
+
+    const user = await User.findById(userId).populate("clubInvitations.clubId");
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
     }
+
+    const invitedClubs = user.clubInvitations.filter(invite => !invite.isAccepted);
+    res.status(200).json(invitedClubs);
 });
+
 
 
 const acceptClubInvitation = asyncHandler(async (req, res) => {
-    try {
-        const {clubId, userId} = req.params;
-        const club = await Clubs.findById(clubId);
-        if (!club) {
-            res.status(404);
-            throw new Error('Club not found');
-        }
+    const userId = req.user.id; // Extract userId from token (set by middleware)
+    const { clubId } = req.params; // Only clubId comes from the URL
 
-        const member = club.members.find(m => m.userId === userId);
-        if (!member) {
-            res.status(404);
-            throw new Error('Invitation not found');
-        }
+    const user = await User.findById(userId);
+    const club = await Clubs.findById(clubId);
 
-        member.isAccepted = true;
-        await club.save();
-        res.status(200).json({ message: 'Invitation accepted successfully' });
-    } catch (error) {
-        console.error("Error accepting club invitation:", error);
-        res.status(500).json({ message: 'Internal server error' });
+    if (!user || !club) {
+        return res.status(404).json({ message: "User or Club not found" });
     }
-})
 
-module.exports = {createClubs,updateClubs,getClubs,getClubById,deleteClubs,getInvitedClubs,acceptClubInvitation};
+    // Update invitation as accepted
+    const invitation = user.clubInvitations.find(inv => inv.clubId.toString() === clubId);
+    if (invitation) {
+        invitation.isAccepted = true;
+    }
+
+    // Add user to club members if not already
+    if (!club.members.some(m => m.userId.toString() === userId)) {
+        club.members.push({ userId, isAccepted: true });
+    }
+
+    await user.save();
+    await club.save();
+
+    res.status(200).json({ message: "Invitation accepted" });
+});
+
+
+
+module.exports = {createClubs,updateClubs,getClubs,getInvitedClubs,acceptClubInvitation,getAllClubs};

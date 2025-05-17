@@ -1,15 +1,22 @@
 const express = require('express');
 const passport = require('passport');
-const { requestPasswordResetWithOTP, verifyOTPAndPassword, updatePassword } = require('../controllers/UserControllers');
+const { requestPasswordResetWithOTP, verifyOTPAndPassword, updatePassword } = require('../controllers/ParentController');
 const router = express.Router();
 
-//Google auth Route
-router.get('/google',passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
 
-//Google auth callback route
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-    res.redirect('/dashboard');
-})
+router.get('/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: '/login',
+    session: true
+  }),
+  (req, res) => {
+    // Successful authentication
+    res.redirect('http://localhost:3000/dashboard');
+  }
+);
 
 
 // Forgot Password

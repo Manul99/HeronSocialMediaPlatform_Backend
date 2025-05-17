@@ -1,5 +1,9 @@
 const asyncHandler = require('express-async-handler');
 const Gamification = require('../models/Gamification');
+const Parents = require('../models/Parents');
+const User = require('../models/User');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 
 const getGamification = asyncHandler(async (req, res) => {
@@ -18,4 +22,43 @@ const getGamification = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = {getGamification};
+const getGamificationForChild = asyncHandler(async (req, res) => {
+    try {
+      // Parent is logged in → their ID is req.user.id
+       const parentId = req.user.parentId;
+
+
+        // Find the parent by their _id
+          const parent = await Parents.findOne(parentId);
+        if (!parent) {
+            return res.status(404).json({ message: 'Parent not found' });
+        }
+
+        // Parent has a `children` field that stores the child userId
+        const childUserId = parent.children;
+
+        // Find gamification data using child’s userId
+        const gamification = await Gamification.findOne(childUserId).select('level points');
+        if (!gamification) {
+            return res.status(404).json({ message: 'Gamification not found' });
+        }
+
+        // Get child username and level
+        const childUser = await User.findOne(childUserId).select('username level');
+        if (!childUser) {
+            return res.status(404).json({ message: 'Child user not found' });
+        }
+
+        // Return combined data
+        res.status(200).json({
+            gamification,
+            username: childUser.username,
+            level: childUser.level
+        });
+    } catch (error) {
+        console.error("Error fetching gamification data for child:", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+module.exports = {getGamification,getGamificationForChild};

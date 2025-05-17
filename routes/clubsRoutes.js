@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { createClubs, updateClubs, getClubs, getClubById, deleteClubs, getInvitedClubs, acceptClubInvitation, getAllClubs } = require('../controllers/ClubsController');
+const { createClubs, updateClubs, getClubs, getClubById, deleteClubs, getInvitedClubs, acceptClubInvitation, getAllClubs, getClubsByParentChild } = require('../controllers/ClubsController');
 const { authMiddleware } = require('../middleware/auth');
 
 
@@ -15,6 +15,7 @@ router.put('/:id', upload.fields([{ name: "clubLogo", maxCount: 1 }, { name: "co
 router.get('/invited',authMiddleware,getInvitedClubs);
 router.post('/accept/:clubId',authMiddleware, acceptClubInvitation);
 router.get('/getclubs',getAllClubs);
+router.get('/getclubsp',authMiddleware,getClubsByParentChild)
 // router.get('/:id',getClubById);
 // router.get('/:id',deleteClubs);
 module.exports = router;

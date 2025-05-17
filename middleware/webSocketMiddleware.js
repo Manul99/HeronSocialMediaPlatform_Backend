@@ -1,5 +1,6 @@
 const socketIo = require('socket.io');
 const jwt = require('jsonwebtoken');
+const Messages = require('../models/Messageing');
 
 let io;
 
@@ -29,24 +30,28 @@ const initializeSocket = (server) => {
         });
 
         // Handle sending messages
-        socket.on("sendMessage", (message) => {
-            const chatRoom = message.receiverId || message.clubId;
-            
-            if (!message.text) {
-                return socket.emit("error", { message: "Message cannot be empty" });
-            }
+      // Update sendMessage handler
+socket.on("sendMessage", async (message) => {
+  try {
+    const newMessage = await Messages.create({
+      senderId: userId,
+      receiverId: message.receiverId,
+      text: message.text,
+      role: socket.user.role // 'student' or 'teacher'
+    });
 
-            const newMessage = {
-                senderId: userId,
-                receiverId: message.receiverId || null,
-                clubId: message.clubId || null,
-                text: message.text,
-                media: message.media || [],
-                createdAt: new Date()
-            };
-
-            io.to(chatRoom).emit("message", newMessage);
-        });
+    const receiverSocketId = activeUsers[message.receiverId];
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('newMessage', newMessage);
+    }
+    
+    // Emit to sender for local update
+    socket.emit('newMessage', newMessage);
+    
+  } catch (error) {
+    socket.emit("error", { message: "Failed to send message" });
+  }
+});
 
         // Handle user disconnection
         socket.on("disconnect", () => {

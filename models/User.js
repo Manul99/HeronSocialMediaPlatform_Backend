@@ -15,7 +15,8 @@ const userSchema = new mongoose.Schema({
         clubName: { type: String },
         invitedAt: { type: Date, default: Date.now },
         isAccepted: { type: Boolean, default: false }
-    }]
+    }],
+  
 
 })
 

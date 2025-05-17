@@ -3,6 +3,7 @@ const Events = require('../models/Events');
 const Clubs = require('../models/Clubs');
 const path = require('path');
 const fs = require('fs');
+const Parents = require('../models/Parents');
 
 const uploadDir = path.join(__dirname, '../uploads');
 
@@ -141,5 +142,43 @@ const deleteEvent = asyncHandler(async (req, res) => {
     }
 });
 
+const getEventsByParentChild = asyncHandler(async(req,res) =>{
+     try {
+      // Parent is logged in → their ID is req.user.id
+       const parentId = req.user.parentId;
+
+
+        // Find the parent by their _id
+          const parent = await Parents.findOne(parentId);
+        if (!parent) {
+            return res.status(404).json({ message: 'Parent not found' });
+        }
+
+        // Parent has a `children` field that stores the child userId
+        const childUserId = parent.children;
+
+        // Find gamification data using child’s userId
+        const Club = await Events.findOne(childUserId).select('clubName');
+        if (!Club) {
+            return res.status(404).json({ message: 'Club not found' });
+        }
+
+        // Get child username and level
+        const childUser = await User.findOne(childUserId).select('username level');
+        if (!childUser) {
+            return res.status(404).json({ message: 'Child user not found' });
+        }
+
+        // Return combined data
+        res.status(200).json({
+            Club,
+            username: childUser.username,
+            level: childUser.level
+        });
+    } catch (error) {
+        console.error("Error fetching gamification data for child:", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
 
 module.exports = {createEvents,updateEvents,getEventsById,getAllEvents,deleteEvent};

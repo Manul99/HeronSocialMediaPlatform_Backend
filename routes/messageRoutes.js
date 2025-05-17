@@ -12,7 +12,7 @@ const storage = multer.memoryStorage();
 
 const upload = multer({storage:storage});
 
-router.post("/send",upload.array("media",5),attachSocket,authMiddleware,sendMessage);
-router.get("/:chatType/:chatId",authMiddleware,getMessages);
+router.post("/send",attachSocket,authMiddleware,sendMessage);
+router.get("/:chatId",authMiddleware,getMessages);
 
 module.exports = router;

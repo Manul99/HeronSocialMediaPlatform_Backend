@@ -90,4 +90,19 @@ const getAllTeachers = asyncHandler(async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch events', details: error.message });
     }
 });
-module.exports = {assignStudent,registerTeacher,loginTeacher,getAllTeachers};
+
+const getTeacherById = asyncHandler(async(req,res) =>{
+    try {
+     const teacherId = req.user.id;
+     const user = await Teachers.findOne({ _id: teacherId });
+
+    if(!user){
+        return res.status(404).json({message:'User not found'});
+    }
+    res.status(200).json(user);
+    } catch (error) {
+        console.error('Failed to get user');
+        res.status(500).json({message:'Internal server error'});
+    }
+});
+module.exports = {assignStudent,registerTeacher,loginTeacher,getAllTeachers,getTeacherById};

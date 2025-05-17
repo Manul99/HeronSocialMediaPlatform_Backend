@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
 const mongoose = require('mongoose');
+const Parents = require('../models/Parents');
 
 const uploadDir = path.join(__dirname, '../uploads');
 
@@ -277,6 +278,40 @@ const acceptClubInvitation = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Invitation accepted" });
 });
 
+const getClubsByParentChild = asyncHandler(async(req,res) =>{
+   try {
+     console.log("Decoded user in request:", req.user);
+    const parentId = req.user.parentId;
+
+    if (!parentId) {
+        return res.status(400).json({ message: "Parent ID not found in token" });
+    }
+  // Step 1: Get the parent and their child userId
+  const parent = await Parents.findById(parentId);
+  if (!parent || !parent.children) {
+    return res.status(404).json({ message: "Parent or child not found" });
+  }
+
+  // Step 2: Get the child's club invitations
+  const childUser = await User.findOne(parent.children).populate("clubInvitations.clubId");
+  if (!childUser) {
+    return res.status(404).json({ message: "Child user not found" });
+  }
+
+  // Step 3: Filter unaccepted invitations and extract club names
+  const invitedClubs = childUser.clubInvitations
+    .filter(inv => !inv.isAccepted)
+    .map(inv => ({
+      clubName: inv.clubId?.name || "Unknown Club",
+      clubId: inv.clubId?._id,
+      childName: childUser.username
+    }));
+
+  res.status(200).json(invitedClubs);
+   } catch (error) {
+    console.error('Failed')
+   }
+})
 
 
-module.exports = {createClubs,updateClubs,getClubs,getInvitedClubs,acceptClubInvitation,getAllClubs};
+module.exports = {createClubs,updateClubs,getClubs,getInvitedClubs,acceptClubInvitation,getAllClubs,getClubsByParentChild};

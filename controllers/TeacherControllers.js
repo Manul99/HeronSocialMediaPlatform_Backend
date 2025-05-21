@@ -26,9 +26,9 @@ const assignStudent = asyncHandler(async (req, res) => {
 
 const registerTeacher = asyncHandler(async (req, res) => {
     try {
-        const { fullName, username, email, password, mobile, level,gender, subject } = req.body;
+        const { fullName, username, password, level,gender, subject } = req.body;
 
-        if (!fullName|| !username || !email || !password || !level, !gender, !subject) {
+        if (!fullName|| !username  || !password || !level, !gender, !subject) {
             return res.status(400).json({ message: "Please fill all required fields." });
         }
 
@@ -43,9 +43,7 @@ const registerTeacher = asyncHandler(async (req, res) => {
         const teacher = new Teachers({
             fullName,
             username,
-            email,
             password: hashPassword,
-            mobile,
             level,
             gender,
             subject

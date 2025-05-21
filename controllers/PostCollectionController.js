@@ -185,7 +185,7 @@ const likeandUnlike = asyncHandler(async (req, res) => {
     try {
 
         const blog = await PostCollections.findById(req.params.id);
-        if (!blog) return res.status(400).json({ message: 'Blog not found' });
+        if (!blog) return res.status(400).json({ message: 'Post not found' });
 
         const userId = req.user?.id;
         if (!userId) {

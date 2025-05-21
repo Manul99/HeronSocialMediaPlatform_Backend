@@ -22,7 +22,7 @@ const { UserType, MedalType } = require('../enums/enumList');
 //User registration
 const register = asyncHandler(async (req, res) => {
     try {
-        const { fullName, username, password, mobile, level,gender, subject } = req.body;
+        const { fullName, username, password, level,gender, subject } = req.body;
 
         if (!fullName|| !username || !password || !level, !gender, !subject) {
             return res.status(400).json({ message: "Please fill all required fields." });
@@ -40,7 +40,6 @@ const register = asyncHandler(async (req, res) => {
             fullName,
             username,
             password: hashPassword,
-            mobile,
             level,
             gender,
             subject
@@ -171,7 +170,7 @@ const requestPasswordResetWithOTP = asyncHandler(async(req,res) =>{
       
         const mailOptions = {
             from: {
-                name:'Heron SocialMedia Platform',
+                name:'Hero SocialMedia Platform',
                 address:'manulperera5@gmail.com'
             },
             to: email,

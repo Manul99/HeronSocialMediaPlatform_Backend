@@ -25,11 +25,11 @@ const getGamification = asyncHandler(async (req, res) => {
 const getGamificationForChild = asyncHandler(async (req, res) => {
     try {
       // Parent is logged in → their ID is req.user.id
-       const parentId = req.user.parentId;
+       const parentId = req.user.id;
 
 
         // Find the parent by their _id
-          const parent = await Parents.findOne(parentId);
+          const parent = await Parents.findById(parentId);
         if (!parent) {
             return res.status(404).json({ message: 'Parent not found' });
         }
@@ -38,16 +38,16 @@ const getGamificationForChild = asyncHandler(async (req, res) => {
         const childUserId = parent.children;
 
         // Find gamification data using child’s userId
-        const gamification = await Gamification.findOne(childUserId).select('level points');
-        if (!gamification) {
-            return res.status(404).json({ message: 'Gamification not found' });
-        }
+          const gamification = await Gamification.findOne({ userId: childUserId }).select('level points');
+    if (!gamification) {
+      return res.status(404).json({ message: 'Gamification not found' });
+    }
 
-        // Get child username and level
-        const childUser = await User.findOne(childUserId).select('username level');
-        if (!childUser) {
-            return res.status(404).json({ message: 'Child user not found' });
-        }
+    // Fetch child user info
+    const childUser = await User.findById(childUserId).select('username level');
+    if (!childUser) {
+      return res.status(404).json({ message: 'Child user not found' });
+    }
 
         // Return combined data
         res.status(200).json({

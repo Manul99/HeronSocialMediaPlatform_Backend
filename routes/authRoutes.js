@@ -14,7 +14,7 @@ router.get('/google/callback',
   }),
   (req, res) => {
     // Successful authentication
-    res.redirect('http://localhost:3000/dashboard');
+    res.redirect('http://localhost:3000/pOverview');
   }
 );
 

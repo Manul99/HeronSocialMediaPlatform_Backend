@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heronsocialmedia-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: heronsocialmedia-backend
+  template:
+    metadata:
+      labels:
+        app: heronsocialmedia-backend
+    spec:
+      containers:
+        - name: heronsocialmedia-backend
+          image: manulperera5665/heronsocialmediaplatform-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - secretRef:
+                name: heronsocialmedia-backend-secrets

@@ -35,5 +35,6 @@ jobs:
         shell: powershell
 
       - name: Restart Deployment
-        run: kubectl rollout restart deployment $KUBE_DEPLOYMENT -n $KUBE_NAMESPACE
+        run: kubectl rollout restart deployment $env:KUBE_DEPLOYMENT -n $env:KUBE_NAMESPACE
         shell: powershell
+

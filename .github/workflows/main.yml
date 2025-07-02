@@ -7,8 +7,8 @@ on:
 
 env:
   IMAGE_NAME: manulperera5665/heronsocialmediaplatform-backend
-  IMAGE_TAG: latest
-  FULL_IMAGE_NAME: manulperera5665/heronsocialmediaplatform-backend:latest
+  IMAGE_TAG: ${{ github.sha }}
+  FULL_IMAGE_NAME: manulperera5665/heronsocialmediaplatform-backend:${{ github.sha }}
   KUBE_DEPLOYMENT: heronsocialmedia-backend
   KUBE_NAMESPACE: default
   CONTAINER_NAME: heronsocialmedia-backend  
@@ -32,15 +32,19 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker image
-        run: docker build --no-cache -t $env:FULL_IMAGE_NAME .
+      - name: Build Docker Image
+        run: docker build -t $env:FULL_IMAGE_NAME .
         shell: powershell
 
-      - name: Push Docker image to Docker Hub
-        run: docker push $env:FULL_IMAGE_NAME
+      - name: Push Image to Docker Hub
+        run: |
+          docker login -u $env:DOCKERHUB_USERNAME -p $env:DOCKERHUB_TOKEN
+          docker push $env:FULL_IMAGE_NAME
         shell: powershell
 
-      - name: Update Kubernetes deployment image
+
+      - name: Update Kubernetes Deployment Image
         run: |
           kubectl set image deployment/$env:KUBE_DEPLOYMENT $env:CONTAINER_NAME=$env:FULL_IMAGE_NAME -n $env:KUBE_NAMESPACE
         shell: powershell
+

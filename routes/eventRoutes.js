@@ -9,7 +9,7 @@ const upload1 = multer({storage:storage1});
 router.post('/', upload1.single("media"),createEvents);
 router.put('/:id',updateEvents);
 router.get('/:eventId',getEventsById);
-router.get('/',getAllEvents);
+router.get('/allevents',getAllEvents);
 router.delete('/:eventId', deleteEvent);
 
 

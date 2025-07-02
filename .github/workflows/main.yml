@@ -31,7 +31,9 @@ jobs:
 
 
       - name: Load Image to Minikube
-        run: minikube image load $DOCKER_IMAGE
+        run: minikube image load $env:DOCKER_IMAGE
+        shell: powershell
 
       - name: Restart Deployment
         run: kubectl rollout restart deployment $KUBE_DEPLOYMENT -n $KUBE_NAMESPACE
+        shell: powershell

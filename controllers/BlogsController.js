@@ -5,7 +5,7 @@ const Blogs = require('../models/Blogs');
 
 const uploadDir = path.join(__dirname, '../uploads');
 
-// Ensure the upload directory exists
+// Ensure the upload directory exists correctly
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }

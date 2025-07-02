@@ -1,4 +1,4 @@
-name: Build CI/CD pipeline for backend
+name: Build and Deploy Backend to Minikube
 
 on:
   push:
@@ -6,35 +6,41 @@ on:
       - main
 
 env:
-  DOCKER_IMAGE: heronsocialmediaplatform-backend:latest
+  IMAGE_NAME: manulperera5665/heronsocialmediaplatform-backend
+  IMAGE_TAG: latest
+  FULL_IMAGE_NAME: manulperera5665/heronsocialmediaplatform-backend:latest
   KUBE_DEPLOYMENT: heronsocialmedia-backend
   KUBE_NAMESPACE: default
+  CONTAINER_NAME: heronsocialmedia-backend  
 
 jobs:
   deploy:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Show files for debugging
+      - name: Show files (debug)
         run: Get-ChildItem -Force
         shell: powershell
 
-      - name: Check Docker info
-        run: docker info
+      - name: Docker login to Docker Hub
+        run: docker login -u $env:DOCKERHUB_USERNAME -p $env:DOCKERHUB_TOKEN
+        shell: powershell
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker Image
-        run: docker build --no-cache -t $env:DOCKER_IMAGE .
+      - name: Build Docker image
+        run: docker build --no-cache -t $env:FULL_IMAGE_NAME .
         shell: powershell
 
-
-      - name: Load Image to Minikube
-        run: minikube image load $env:DOCKER_IMAGE
+      - name: Push Docker image to Docker Hub
+        run: docker push $env:FULL_IMAGE_NAME
         shell: powershell
 
-      - name: Restart Deployment
-        run: kubectl rollout restart deployment $env:KUBE_DEPLOYMENT -n $env:KUBE_NAMESPACE
+      - name: Update Kubernetes deployment image
+        run: |
+          kubectl set image deployment/$env:KUBE_DEPLOYMENT $env:CONTAINER_NAME=$env:FULL_IMAGE_NAME -n $env:KUBE_NAMESPACE
         shell: powershell
-

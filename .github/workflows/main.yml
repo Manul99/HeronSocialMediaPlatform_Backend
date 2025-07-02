@@ -26,8 +26,9 @@ jobs:
         run: docker info
 
       - name: Build Docker Image
-        run: |
-          docker build --no-cache -t $DOCKER_IMAGE .
+        run: docker build --no-cache -t $env:DOCKER_IMAGE .
+        shell: powershell
+
 
       - name: Load Image to Minikube
         run: minikube image load $DOCKER_IMAGE

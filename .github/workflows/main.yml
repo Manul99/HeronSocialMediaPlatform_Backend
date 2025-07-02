@@ -22,17 +22,12 @@ jobs:
         run: Get-ChildItem -Force
         shell: powershell
 
-
       - name: Check Docker info
         run: docker info
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Build Docker Image
         run: |
-          docker buildx build --progress=plain --no-cache --load -t $DOCKER_IMAGE .
-
+          docker build --no-cache -t $DOCKER_IMAGE .
 
       - name: Load Image to Minikube
         run: minikube image load $DOCKER_IMAGE

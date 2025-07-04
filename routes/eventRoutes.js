@@ -7,9 +7,9 @@ const storage1 = multer.memoryStorage();
 const upload1 = multer({storage:storage1});
 
 router.post('/', upload1.single("media"),createEvents);
+router.get('/allevents',getAllEvents);
 router.put('/:id',updateEvents);
 router.get('/:eventId',getEventsById);
-router.get('/allevents',getAllEvents);
 router.delete('/:eventId', deleteEvent);
 
 

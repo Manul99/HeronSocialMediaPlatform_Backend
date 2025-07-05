@@ -26,7 +26,6 @@ jobs:
 
       - name: Docker login to Docker Hub
         run: docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_TOKEN
- 
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -35,6 +34,7 @@ jobs:
         run: docker build -t $FULL_IMAGE_NAME .
 
       - name: Push Image to Docker Hub
+        run: docker push $FULL_IMAGE_NAME
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -42,4 +42,3 @@ jobs:
       - name: Update Kubernetes Deployment Image
         run: |
           kubectl set image deployment/$KUBE_DEPLOYMENT $CONTAINER_NAME=$FULL_IMAGE_NAME -n $KUBE_NAMESPACE
-

@@ -15,36 +15,31 @@ env:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Show files (debug)
-        run: Get-ChildItem -Force
-        shell: powershell
+        run: ls -al
 
       - name: Docker login to Docker Hub
-        run: docker login -u $env:DOCKERHUB_USERNAME -p $env:DOCKERHUB_TOKEN
-        shell: powershell
+        run: docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_TOKEN
+ 
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Docker Image
-        run: docker build -t $env:FULL_IMAGE_NAME .
-        shell: powershell
+        run: docker build -t $FULL_IMAGE_NAME .
 
       - name: Push Image to Docker Hub
-        run: |
-          docker login -u $env:DOCKERHUB_USERNAME -p $env:DOCKERHUB_TOKEN
-          docker push $env:FULL_IMAGE_NAME
-        shell: powershell
-
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Update Kubernetes Deployment Image
         run: |
-          kubectl set image deployment/$env:KUBE_DEPLOYMENT $env:CONTAINER_NAME=$env:FULL_IMAGE_NAME -n $env:KUBE_NAMESPACE
-        shell: powershell
+          kubectl set image deployment/$KUBE_DEPLOYMENT $CONTAINER_NAME=$FULL_IMAGE_NAME -n $KUBE_NAMESPACE
 

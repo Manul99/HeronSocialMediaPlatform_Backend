@@ -183,6 +183,7 @@ const getClubs = asyncHandler(async (req, res) => {
     }
 });
 
+// Get all clubs
 const getAllClubs = asyncHandler(async (req, res) => {
    try {
         const clubs = await Clubs.find();
@@ -192,49 +193,7 @@ const getAllClubs = asyncHandler(async (req, res) => {
     }
 });
 
-// // Get club by ID
-// const getClubById = asyncHandler(async (req, res) => {
-//     try {
-//         const club = await Clubs.findById(req.params.id).populate("createdBy",  "mentorId");
-//         if (!club) {
-//             res.status(404);
-//             throw new Error('Club not found');
-//         }
-//         res.status(200).json(club);
-//     } catch (error) {
-//         console.error("Error fetching club:", error);
-//         res.status(500).json({ message: 'Internal server error' });
-//     }
-// });
 
-// const deleteClubs = asyncHandler(async (req, res) => {
-//     try {
-//         const club = await Clubs.findById(req.params.id);
-
-//         if(!club){
-//             res.status(404);
-//             throw new Error('Club not found');
-//         }
-
-//         // Delete media files from Google Cloud Storage 
-//         if (vlog.media && vlog.media.length > 0) {
-//             for (const fileUrl of vlog.media) {
-//                 const fileName = fileUrl.split("/").pop(); // Extract file name from URL
-//                 const fileRef = bucket.file(`vlogMedia/${fileName}`);
-//                 await fileRef.delete();
-//             }
-//         }
-
-      
-//                 await Vlogs.deleteOne({ _id: club });
-        
-//                 res.status(200).json({ message: "Club deleted successfully" });
-
-//     } catch (error) {
-//         console.error("Failed to delete club",error);
-//         res.status(500).json({ message: "Internal server error" });
-//     }
-// });
 
 const getInvitedClubs = asyncHandler(async (req, res) => {
     const userId = req.user.id; // fixed
@@ -251,8 +210,8 @@ const getInvitedClubs = asyncHandler(async (req, res) => {
 
 
 const acceptClubInvitation = asyncHandler(async (req, res) => {
-    const userId = req.user.id; // Extract userId from token (set by middleware)
-    const { clubId } = req.params; // Only clubId comes from the URL
+    const userId = req.user.id; 
+    const { clubId } = req.params;
 
     const user = await User.findById(userId);
     const club = await Clubs.findById(clubId);

@@ -55,6 +55,7 @@ const createBlog = asyncHandler(async (req, res) => {
 
 });
 
+//Update Blog
 const updateBlogs = asyncHandler(async(req,res) =>{
     try {
         const { title, content, image } = req.body;
@@ -96,6 +97,7 @@ const updateBlogs = asyncHandler(async(req,res) =>{
     }
 })
 
+// Like and Unlike
 const likeandUnlike = asyncHandler(async (req, res) => {
     try {
 
@@ -123,6 +125,7 @@ const likeandUnlike = asyncHandler(async (req, res) => {
     }
 });
 
+// Add Comments
 const addComments = asyncHandler(async (req, res) => {
     try {
         const blog = await Blogs.findById(req.params.id);
